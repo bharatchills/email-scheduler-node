@@ -1,0 +1,16 @@
+{
+  "schedules": [
+    {
+      "recipients": ["recipient1@example.com", "recipient2@example.com"],
+      "subject": "Scheduled Email with Attachments",
+      "text": "Hello, this is a scheduled email from your Node.js email scheduler with attachments!",
+      "schedule": "0 */2 * * *",
+      "attachments": [
+        {
+          "filename": "sample.txt",
+          "path": "./attachments/sample.txt"
+        }
+      ]
+    }
+  ]
+}

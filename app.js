@@ -1,7 +1,11 @@
 // Import packages
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
+const fs = require('fs');
 require('dotenv').config();
+
+// Read email configurations from config.json
+const emailConfig = require('./config.json');
 
 // Configure email transporter
 const transporter = nodemailer.createTransport({
@@ -13,13 +17,14 @@ const transporter = nodemailer.createTransport({
 });
 
 // Function to send email
-async function sendEmail() {
+async function sendEmail(recipients, subject, text, attachments) {
   try {
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'recipient@example.com',
-      subject: 'Scheduled Email',
-      text: 'Hello, this is a scheduled email from your Node.js email scheduler!',
+      to: recipients,
+      subject: subject,
+      text: text,
+      attachments: attachments,
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -29,6 +34,21 @@ async function sendEmail() {
   }
 }
 
-// Schedule email
-const schedule = '0 */2 * * *'; // This will send the email every 2 hours
-cron.schedule(schedule, sendEmail);
+// Schedule emails
+emailConfig.schedules.forEach((schedule) => {
+  // Prepare attachments
+  const attachments = schedule.attachments.map((attachment) => ({
+    filename: attachment.filename,
+    path: attachment.path,
+    contentType: attachment.contentType || 'application/octet-stream',
+  }));
+
+  cron.schedule(schedule.schedule, () => {
+    sendEmail(
+      schedule.recipients.join(', '),
+      schedule.subject,
+      schedule.text,
+      attachments
+    );
+  });
+});
